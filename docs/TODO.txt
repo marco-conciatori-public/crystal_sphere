@@ -1,0 +1,2 @@
+compose the 3 images
+change calibration from top left and bottom right to left left top and bottom bottom right
