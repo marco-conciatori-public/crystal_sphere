@@ -45,11 +45,15 @@ pyautogui.PAUSE = 0.05  # tiny gap between every PyAutoGUI call
 # =====================================================================
 
 # --- Grid geometry ---
-# Pixel CENTER of the top-left tile (column 0, row 0) and the
-# bottom-right tile (column 10, row 10). The script linearly
-# interpolates everything in between.
-GRID_TOP_LEFT = (640, 240)  # tile (0, 0)
-GRID_BOTTOM_RIGHT = (1280, 880)  # tile (10, 10)
+# Two real tiles used for calibration — corners are off-map so pick visible ones.
+# CALIB_A: left-most tile on row 3  (col 0, row 3)
+# CALIB_B: bottom-most tile on row 10 (col 7, row 10)
+# Hover over each tile center in calibration mode and paste the pixel coords here.
+CALIB_A_GRID = (0, 3)
+CALIB_A_PIXEL = (640, 432)   # measure with: python main.py calibrate
+
+CALIB_B_GRID = (7, 10)
+CALIB_B_PIXEL = (1088, 880)  # measure with: python main.py calibrate
 
 # --- UI buttons ---
 BUTTON_6_FLIPS = (960, 720)  # "Take Debt for 6 Divines" option
@@ -107,10 +111,12 @@ GRID_SIZE = 11
 
 def tile_to_pixel(col: int, row: int) -> tuple[int, int]:
     """Map a (col, row) grid coordinate to a screen pixel."""
-    x0, y0 = GRID_TOP_LEFT
-    x1, y1 = GRID_BOTTOM_RIGHT
-    x = x0 + (x1 - x0) * col / (GRID_SIZE - 1)
-    y = y0 + (y1 - y0) * row / (GRID_SIZE - 1)
+    (ca, ra), (xa, ya) = CALIB_A_GRID, CALIB_A_PIXEL
+    (cb, rb), (xb, yb) = CALIB_B_GRID, CALIB_B_PIXEL
+    step_x = (xb - xa) / (cb - ca)
+    step_y = (yb - ya) / (rb - ra)
+    x = xa + step_x * (col - ca)
+    y = ya + step_y * (row - ra)
     return int(round(x)), int(round(y))
 
 
@@ -211,9 +217,9 @@ def calibrate() -> None:
     """Print cursor position continuously so you can read off coordinates."""
     print("Calibration mode. Press Ctrl+C to stop.")
     print("Hover over each landmark and note (x, y):")
-    print("  - center of tile (0, 0)        -> GRID_TOP_LEFT")
-    print("  - center of tile (10, 10)      -> GRID_BOTTOM_RIGHT")
-    print("  - the '6 flips / Debt' button  -> BUTTON_6_FLIPS")
+    print("  - center of tile (col 0, row 3)   -> CALIB_A_PIXEL")
+    print("  - center of tile (col 7, row 10)  -> CALIB_B_PIXEL")
+    print("  - the '6 flips / Debt' button     -> BUTTON_6_FLIPS")
     print("  - 'Save & Quit' in pause menu  -> BUTTON_SAVE_AND_QUIT")
     print("  - 'Continue' on main menu      -> BUTTON_CONTINUE_RUN")
     print()
