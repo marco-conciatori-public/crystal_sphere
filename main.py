@@ -88,8 +88,7 @@ OUTPUT_DIR = Path("output")
 #   row 10: . . . 1 1 1 1 1 . . .
 #
 # Coordinates below are (col, row) with (0, 0) at the top-left.
-# We pick the 6-flip option each round but stop at 5 — using the 6th
-# can commit event state and defeat the save-scum.
+# We pick the 6-flip option each round but stop at 5
 
 RUN_1 = [(1, 2), (1, 5), (1, 8), (4, 9), (7, 9)]  # 5 flips
 RUN_2 = [(4, 1), (4, 4), (4, 6), (7, 6), (9, 7)]  # 5 flips
@@ -127,7 +126,7 @@ def click(xy: tuple[int, int], pause: float = DELAY_AFTER_BUTTON_CLICK) -> None:
 
 def flip_tile(col: int, row: int) -> None:
     px = tile_to_pixel(col, row)
-    print(f"    flip ({col:>2}, {row:>2}) -> pixel {px}")
+    print(f"\tflip ({col:>2}, {row:>2}) -> pixel {px}")
     click(px, pause=DELAY_AFTER_FLIP_CLICK)
 
 
