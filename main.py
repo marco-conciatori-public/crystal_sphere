@@ -195,8 +195,7 @@ def run_full_scout() -> None:
         # User reloads manually and plays the event with full info.
         if i < len(ALL_RUNS) - 1:
             continue_run()
-            # Re-entering the run drops you back at the event prompt
-            # because we never committed (no exit click).
+            # Re-entering the run drops you back at the event prompt because we never committed (no exit click).
 
     print("\nAll scouting runs complete.")
     print(f"Screenshots: {OUTPUT_DIR.resolve()}")
