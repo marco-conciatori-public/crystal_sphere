@@ -2,19 +2,15 @@
 Crystal Sphere Auto-Scout — Slay the Spire 2
 
 Automates the "save & quit" scouting loop for the Crystal Sphere event:
-  1. Picks the 6-flip option (gives us headroom — we only USE 5)
+  1. Picks the 6-flip option (gives headroom, only USE 5)
   2. Reveals tiles per run using a precomputed coverage pattern
   3. Screenshots the grid
-  4. Save & Quit -> Continue, repeat until the whole sphere is mapped (3 runs)
+  4. Save & Quit -> Continue, repeat until the whole circle is mapped (3 runs)
   5. Stops BEFORE the final play-through so you can do that yourself
 
-The grid is sphere-shaped (not a full square): of the 11x11 cells only the
-inner ~89 are real tiles. Corners are not part of the map. Across 3 rounds
+The grid is circle-shaped (not a full square): of the 11x11 cells only the
+inner 97 are real tiles. Corners are not part of the map. Across 3 rounds
 we use 5 + 5 + 4 = 14 clicks to reveal every real tile.
-
-IMPORTANT: We deliberately stop at 5 flips per round even though the
-6-flip option grants 6. Spending the final flip can commit event state,
-which would defeat the save-scum.
 
 You then look at the screenshots and play the event for real with full info.
 
@@ -23,15 +19,14 @@ USAGE
 ------------------------------------------------------------
 First time only — calibrate coordinates for your monitor:
 
-    python crystal_sphere_scout.py calibrate
+    python main.py calibrate
 
-That command prints your cursor position every 0.5s. Hover over each
-landmark listed in the CONFIG section below and write its (x, y)
-into this file. Then run:
+That command prints your cursor position every 0.5s. Hover over each landmark
+listed in the CONFIG section below and write its (x, y) into this file. Then run:
 
-    python crystal_sphere_scout.py run
+    python main.py run
 
-Failsafe: slam your mouse into any screen corner to abort instantly.
+Failsafe: move your mouse into any screen corner to abort instantly.
 ------------------------------------------------------------
 """
 
@@ -42,9 +37,8 @@ from pathlib import Path
 
 import pyautogui
 
-pyautogui.FAILSAFE = True   # mouse to corner = abort
-pyautogui.PAUSE = 0.05      # tiny gap between every PyAutoGUI call
-
+pyautogui.FAILSAFE = True  # mouse to corner = abort
+pyautogui.PAUSE = 0.05  # tiny gap between every PyAutoGUI call
 
 # =====================================================================
 # CONFIG — CALIBRATE THESE FOR YOUR SCREEN
@@ -54,32 +48,31 @@ pyautogui.PAUSE = 0.05      # tiny gap between every PyAutoGUI call
 # Pixel CENTER of the top-left tile (column 0, row 0) and the
 # bottom-right tile (column 10, row 10). The script linearly
 # interpolates everything in between.
-GRID_TOP_LEFT     = (640, 240)     # tile (0, 0)
-GRID_BOTTOM_RIGHT = (1280, 880)    # tile (10, 10)
+GRID_TOP_LEFT = (640, 240)  # tile (0, 0)
+GRID_BOTTOM_RIGHT = (1280, 880)  # tile (10, 10)
 
 # --- UI buttons ---
-BUTTON_6_FLIPS         = (960, 720)  # "Take Debt for 6 Divines" option
-BUTTON_PAUSE_MENU_KEY  = "escape"    # key that opens the in-game menu
-BUTTON_SAVE_AND_QUIT   = (960, 600)  # "Save & Quit" in the pause menu
-BUTTON_CONTINUE_RUN    = (960, 500)  # "Continue" on the main menu
+BUTTON_6_FLIPS = (960, 720)  # "Take Debt for 6 Divines" option
+BUTTON_PAUSE_MENU_KEY = "escape"  # key that opens the in-game menu
+BUTTON_SAVE_AND_QUIT = (960, 600)  # "Save & Quit" in the pause menu
+BUTTON_CONTINUE_RUN = (960, 500)  # "Continue" on the main menu
 
 # --- Timing (seconds) ---
-DELAY_AFTER_FLIP_CLICK    = 0.9      # tile flip animation
-DELAY_AFTER_BUTTON_CLICK  = 0.7
-DELAY_OPENING_PAUSE_MENU  = 1.2
-DELAY_RELOAD_TO_EVENT     = 6.0      # main-menu -> back inside event
-DELAY_BEFORE_START        = 5.0      # countdown before the script acts
+DELAY_AFTER_FLIP_CLICK = 0.9  # tile flip animation
+DELAY_AFTER_BUTTON_CLICK = 0.7
+DELAY_OPENING_PAUSE_MENU = 1.2
+DELAY_RELOAD_TO_EVENT = 6.0  # main-menu -> back inside event
+DELAY_BEFORE_START = 5.0  # countdown before the script acts
 
 # --- Output ---
-OUTPUT_DIR = Path("crystal_sphere_scout_output")
-
+OUTPUT_DIR = Path("output")
 
 # =====================================================================
-# FLIP PATTERN — covers the full sphere in 3 runs (5 + 5 + 4 = 14 clicks)
+# FLIP PATTERN — covers the full circle in 3 runs (5 + 5 + 4 = 14 clicks)
 # =====================================================================
 #
 # Each Divine reveals a 3x3 centered on the clicked tile. The grid is
-# sphere-shaped: corners marked '0' below are not part of the map.
+# circle-shaped: corners marked '0' below are not part of the map.
 #
 #     col:  0 1 2 3 4 5 6 7 8 9 10
 #   row 0:  . . . 1 1 1 1 1 . . .
@@ -98,20 +91,20 @@ OUTPUT_DIR = Path("crystal_sphere_scout_output")
 # We pick the 6-flip option each round but stop at 5 — using the 6th
 # can commit event state and defeat the save-scum.
 
-RUN_1 = [(1, 2), (1, 5), (1, 8), (4, 9), (7, 9)]           # 5 flips
-RUN_2 = [(4, 1), (4, 4), (4, 6), (7, 6), (9, 7)]           # 5 flips
-RUN_3 = [(7, 1), (7, 3), (9, 2), (9, 4)]                   # 4 flips
+RUN_1 = [(1, 2), (1, 5), (1, 8), (4, 9), (7, 9)]  # 5 flips
+RUN_2 = [(4, 1), (4, 4), (4, 6), (7, 6), (9, 7)]  # 5 flips
+RUN_3 = [(7, 1), (7, 3), (9, 2), (9, 4)]  # 4 flips
 
 ALL_RUNS = [RUN_1, RUN_2, RUN_3]
 
 MAX_FLIPS_PER_RUN = 5  # safety cap — never use the final 6th flip
-
 
 # =====================================================================
 # GEOMETRY HELPERS
 # =====================================================================
 
 GRID_SIZE = 11
+
 
 def tile_to_pixel(col: int, row: int) -> tuple[int, int]:
     """Map a (col, row) grid coordinate to a screen pixel."""
@@ -143,7 +136,7 @@ def screenshot(label: str) -> Path:
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
     path = OUTPUT_DIR / f"{label}_{ts}.png"
     pyautogui.screenshot(str(path))
-    print(f"    saved screenshot: {path}")
+    print(f"\tsaved screenshot: {path}")
     return path
 
 
@@ -192,7 +185,7 @@ def run_full_scout() -> None:
     print("-" * 50)
     print("Make sure:")
     print("  * The Crystal Sphere choice prompt is on screen")
-    print("    (the one offering 3-flip Gold vs 6-flip Debt)")
+    print("\t(the one offering 3-flip Gold vs 6-flip Debt)")
     print("  * Game window is focused")
     print(f"Starting in {DELAY_BEFORE_START:.0f}s — move mouse to a corner to abort.")
     time.sleep(DELAY_BEFORE_START)
