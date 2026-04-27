@@ -34,17 +34,15 @@ import sys
 import time
 from datetime import datetime
 from pathlib import Path
-
 import pyautogui
+# mouse to corner = abort
+pyautogui.FAILSAFE = True
+# tiny gap between every PyAutoGUI call
+pyautogui.PAUSE = 0.05
 
-pyautogui.FAILSAFE = True  # mouse to corner = abort
-pyautogui.PAUSE = 0.05  # tiny gap between every PyAutoGUI call
-
-# =====================================================================
 # CONFIG — CALIBRATE THESE FOR YOUR SCREEN
-# =====================================================================
 
-# --- Grid geometry ---
+# Grid geometry
 # Two real tiles used for calibration — corners are off-map so pick visible ones.
 # CALIB_A: left-most tile on row 3  (col 0, row 3)
 # CALIB_B: bottom-most tile on row 10 (col 7, row 10)
@@ -55,25 +53,23 @@ CALIB_A_PIXEL = (640, 432)   # measure with: python main.py calibrate
 CALIB_B_GRID = (7, 10)
 CALIB_B_PIXEL = (1088, 880)  # measure with: python main.py calibrate
 
-# --- UI buttons ---
+# UI buttons
 BUTTON_6_FLIPS = (960, 720)  # "Take Debt for 6 Divines" option
 BUTTON_PAUSE_MENU_KEY = "escape"  # key that opens the in-game menu
 BUTTON_SAVE_AND_QUIT = (960, 600)  # "Save & Quit" in the pause menu
 BUTTON_CONTINUE_RUN = (960, 500)  # "Continue" on the main menu
 
-# --- Timing (seconds) ---
+# Timing (seconds)
 DELAY_AFTER_FLIP_CLICK = 0.9  # tile flip animation
 DELAY_AFTER_BUTTON_CLICK = 0.7
 DELAY_OPENING_PAUSE_MENU = 1.2
 DELAY_RELOAD_TO_EVENT = 6.0  # main-menu -> back inside event
 DELAY_BEFORE_START = 5.0  # countdown before the script acts
 
-# --- Output ---
+# Output
 OUTPUT_DIR = Path("output")
 
-# =====================================================================
 # FLIP PATTERN — covers the full circle in 3 runs (5 + 5 + 4 = 14 clicks)
-# =====================================================================
 #
 # Each Divine reveals a 3x3 centered on the clicked tile. The grid is
 # circle-shaped: corners marked '0' below are not part of the map.
@@ -102,9 +98,7 @@ ALL_RUNS = [RUN_1, RUN_2, RUN_3]
 
 MAX_FLIPS_PER_RUN = 5  # safety cap — never use the final 6th flip
 
-# =====================================================================
 # GEOMETRY HELPERS
-# =====================================================================
 
 GRID_SIZE = 11
 
@@ -120,9 +114,7 @@ def tile_to_pixel(col: int, row: int) -> tuple[int, int]:
     return int(round(x)), int(round(y))
 
 
-# =====================================================================
 # ACTIONS
-# =====================================================================
 
 def click(xy: tuple[int, int], pause: float = DELAY_AFTER_BUTTON_CLICK) -> None:
     pyautogui.moveTo(xy[0], xy[1], duration=0.15)
@@ -165,9 +157,7 @@ def choose_6_flips() -> None:
     click(BUTTON_6_FLIPS)
 
 
-# =====================================================================
 # MAIN LOOP
-# =====================================================================
 
 def do_run(run_index: int, centers: list[tuple[int, int]]) -> None:
     if len(centers) > MAX_FLIPS_PER_RUN:
@@ -209,9 +199,7 @@ def run_full_scout() -> None:
     print("for real using your screenshots as a map.")
 
 
-# =====================================================================
 # CALIBRATION HELPER
-# =====================================================================
 
 def calibrate() -> None:
     """Print cursor position continuously so you can read off coordinates."""
@@ -232,9 +220,7 @@ def calibrate() -> None:
         print("\nCalibration stopped.")
 
 
-# =====================================================================
 # ENTRY POINT
-# =====================================================================
 
 def main() -> None:
     mode = sys.argv[1] if len(sys.argv) > 1 else "run"
