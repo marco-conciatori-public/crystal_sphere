@@ -209,6 +209,8 @@ def run_full_scout() -> None:
 
     print("\nAll scouting runs complete.")
     print(f"Screenshots: {session_dir.resolve()}")
+    from compose import compose_event
+    compose_event(session_dir)
     print("You are now on the main menu. Click Continue, then play the event")
     print("for real using your screenshots as a map.")
 
@@ -242,8 +244,12 @@ def main() -> None:
         calibrate()
     elif mode == "run":
         run_full_scout()
+    elif mode == "compose":
+        from compose import compose_event, resolve_event_dir
+        arg = sys.argv[2] if len(sys.argv) > 2 else None
+        compose_event(resolve_event_dir(arg))
     else:
-        print(f"Unknown mode: {mode}. Use 'calibrate' or 'run'.")
+        print(f"Unknown mode: {mode}. Use 'calibrate', 'run', or 'compose'.")
         sys.exit(1)
 
 

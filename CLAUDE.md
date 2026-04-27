@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Single-file PyAutoGUI script that automates the **Crystal Sphere** event in *Slay the Spire 2*. It reveals every tile of the (circle-shaped) 11×11 grid by repeatedly choosing the 6-flip "Debt" option, flipping 5 tiles, screenshotting, then **Save & Quit → Continue** to reset the run without committing — across 3 such cycles (5 + 5 + 4 = 14 flips). The script stops at the main menu before the final committed play-through.
+PyAutoGUI script that automates the **Crystal Sphere** event in *Slay the Spire 2*. It reveals every tile of the (circle-shaped) 11×11 grid by repeatedly choosing the 6-flip "Debt" option, flipping 5 tiles, screenshotting, then **Save & Quit → Continue** to reset the run without committing — across 3 such cycles (5 + 5 + 4 = 14 flips). The script stops at the main menu before the final committed play-through, after composing the 3 screenshots into one fully-revealed map.
 
 ## Commands
 
@@ -12,9 +12,11 @@ The project is managed with **uv** (see `uv.lock`). Python ≥3.12, <3.14.
 
 ```bash
 uv sync                  # install deps into .venv
-uv run python main.py calibrate   # print live cursor coords for measuring landmarks
-uv run python main.py run         # default mode — execute the full scout
-uv run python main.py             # same as 'run'
+uv run python main.py calibrate         # print live cursor coords for measuring landmarks
+uv run python main.py run               # default — full scout + auto-compose
+uv run python main.py compose           # rebuild composite for the latest event_N
+uv run python main.py compose 3         # rebuild composite for event_3
+uv run python main.py                   # same as 'run'
 ```
 
 There are no tests, lint config, or build step.
@@ -33,8 +35,13 @@ There are no tests, lint config, or build step.
 
 - **Failsafe.** `pyautogui.FAILSAFE = True`: moving the mouse to any screen corner aborts immediately. Preserve this when refactoring.
 
-- **Output.** Screenshots go to `./output/run{N}_revealed_{timestamp}.png`. Directory is created on demand.
+- **Output.** Each `run` invocation creates a fresh `./output/event_N/` (next free integer) and drops `run{N}_revealed_{timestamp}.png` files plus a final `composite_revealed.png` there.
+
+## Modules
+
+- `main.py` — automation driver (PyAutoGUI clicks, calibration, scouting loop). Owns the calibration constants and `tile_to_pixel`.
+- `compose.py` — image composition. Imports calibration + `ALL_RUNS` from `main.py`, computes which run reveals each real tile, and pastes the per-tile crops onto a base image. Has its own `REAL_TILES` mask mirroring the ASCII grid in `main.py` — keep the two in sync if either changes. Asserts every real tile has an owning run, so a broken `RUN_*` pattern fails loudly.
 
 ## Open work
 
-`docs/TODO.txt` lists: composing the 3 screenshots into one image, and automatic element recognition from the screenshots.
+`docs/TODO.txt` remaining item: automatic element recognition from the screenshots.
