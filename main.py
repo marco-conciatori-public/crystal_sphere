@@ -48,16 +48,16 @@ pyautogui.PAUSE = 0.05
 # CALIB_B: bottom-most tile on row 10 (col 7, row 10)
 # Hover over each tile center in calibration mode and paste the pixel coords here.
 CALIB_A_GRID = (0, 3)
-CALIB_A_PIXEL = (640, 432)   # measure with: python main.py calibrate
+CALIB_A_PIXEL = (470, 520)   # measure with: python main.py calibrate
 
 CALIB_B_GRID = (7, 10)
-CALIB_B_PIXEL = (1088, 880)  # measure with: python main.py calibrate
+CALIB_B_PIXEL = (885, 935)  # measure with: python main.py calibrate
 
 # UI buttons
-BUTTON_6_FLIPS = (960, 720)  # "Take Debt for 6 Divines" option
+BUTTON_6_FLIPS = (1250, 750)  # "Take Debt for 6 Divines" option
 BUTTON_PAUSE_MENU_KEY = "escape"  # key that opens the in-game menu
-BUTTON_SAVE_AND_QUIT = (960, 600)  # "Save & Quit" in the pause menu
-BUTTON_CONTINUE_RUN = (960, 500)  # "Continue" on the main menu
+BUTTON_SAVE_AND_QUIT = (960, 730)  # "Save & Quit" in the pause menu
+BUTTON_CONTINUE_RUN = (780, 685)  # "Continue" on the main menu
 
 # Timing (seconds)
 DELAY_AFTER_FLIP_CLICK = 0.9  # tile flip animation
