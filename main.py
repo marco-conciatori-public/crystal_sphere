@@ -190,14 +190,18 @@ def do_run(run_index: int, centers: list[tuple[int, int]], session_dir: Path) ->
 def run_full_scout() -> None:
     print("Crystal Sphere Auto-Scout")
     print("-" * 50)
-    print("Make sure:")
-    print("  * The Crystal Sphere choice prompt is on screen")
-    print("\t(the one offering 3-flip Gold vs 6-flip Debt)")
-    print("  * Game window is focused")
+    print("Make sure the game window is focused and shows one of:")
+    print("  * main menu with Continue button")
+    print("  * Crystal Sphere choice prompt (3 vs 6 flips)")
+    print("  * Crystal Sphere map view")
+    print("  * in-game pause menu")
     session_dir = next_event_dir()
     print(f"Output folder for this run: {session_dir.resolve()}")
     print(f"Starting in {DELAY_BEFORE_START:.0f}s — move mouse to a corner to abort.")
     time.sleep(DELAY_BEFORE_START)
+
+    from state import prepare_for_scout
+    prepare_for_scout()
 
     for i, centers in enumerate(ALL_RUNS):
         do_run(i, centers, session_dir)
@@ -248,8 +252,21 @@ def main() -> None:
         from compose import compose_event, resolve_event_dir
         arg = sys.argv[2] if len(sys.argv) > 2 else None
         compose_event(resolve_event_dir(arg))
+    elif mode == "capture":
+        from state import STATES, capture_reference
+        if len(sys.argv) < 3 or sys.argv[2] not in STATES:
+            print(f"Usage: python main.py capture <{'|'.join(STATES)}>")
+            sys.exit(1)
+        capture_reference(sys.argv[2])
+    elif mode == "detect":
+        from state import CAPTURE_COUNTDOWN, STATES, detect_state
+        print(f"Focus the game window. Detecting in {CAPTURE_COUNTDOWN:.0f}s...")
+        time.sleep(CAPTURE_COUNTDOWN)
+        best, scores = detect_state()
+        pretty = ", ".join(f"{s}={scores[s]:.1f}" for s in STATES)
+        print(f"Detected: {best}  (distances: {pretty})")
     else:
-        print(f"Unknown mode: {mode}. Use 'calibrate', 'run', or 'compose'.")
+        print(f"Unknown mode: {mode}. Use 'calibrate', 'run', 'compose', 'capture', or 'detect'.")
         sys.exit(1)
 
 
