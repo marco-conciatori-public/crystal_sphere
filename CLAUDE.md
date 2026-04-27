@@ -1,0 +1,40 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project
+
+Single-file PyAutoGUI script that automates the **Crystal Sphere** event in *Slay the Spire 2*. It reveals every tile of the (circle-shaped) 11×11 grid by repeatedly choosing the 6-flip "Debt" option, flipping 5 tiles, screenshotting, then **Save & Quit → Continue** to reset the run without committing — across 3 such cycles (5 + 5 + 4 = 14 flips). The script stops at the main menu before the final committed play-through.
+
+## Commands
+
+The project is managed with **uv** (see `uv.lock`). Python ≥3.12, <3.14.
+
+```bash
+uv sync                  # install deps into .venv
+uv run python main.py calibrate   # print live cursor coords for measuring landmarks
+uv run python main.py run         # default mode — execute the full scout
+uv run python main.py             # same as 'run'
+```
+
+There are no tests, lint config, or build step.
+
+## Architecture
+
+`main.py` is the entire program. Worth knowing:
+
+- **Calibration is hard-coded** at the top of `main.py` (`CALIB_A_PIXEL`, `CALIB_B_PIXEL`, `BUTTON_*`). These pixel values are screen-resolution-specific and must be remeasured via `calibrate` mode whenever the monitor or game window changes. `tile_to_pixel()` linearly interpolates every tile from those two reference points, so the two calibration tiles must be **far apart** and on **real (non-corner) tiles** of the circle.
+
+- **The grid is circle-shaped, not square.** The corner cells of the 11×11 array are off-map. The ASCII map in `main.py` (around the `RUN_*` constants) is the source of truth for which tiles exist. `RUN_1`/`RUN_2`/`RUN_3` are precomputed 3×3-coverage centers chosen so that their unions cover every real tile — do not edit these casually.
+
+- **Critical safety invariant: never spend the 6th flip.** The script picks the 6-flip option each round but `MAX_FLIPS_PER_RUN = 5` enforces a hard cap in `do_run()`. The 6th flip commits event state, breaking the save-scum loop. Any change that adds clicks per run must preserve this cap.
+
+- **Loop control flow** (`run_full_scout`): for each run, choose 6-flip option → flip 5 tiles → screenshot → Save & Quit → between runs, `Continue` from main menu re-enters the un-committed event. After the final run the script intentionally stops on the main menu and lets the user play manually.
+
+- **Failsafe.** `pyautogui.FAILSAFE = True`: moving the mouse to any screen corner aborts immediately. Preserve this when refactoring.
+
+- **Output.** Screenshots go to `./output/run{N}_revealed_{timestamp}.png`. Directory is created on demand.
+
+## Open work
+
+`docs/TODO.txt` lists: composing the 3 screenshots into one image, and automatic element recognition from the screenshots.
