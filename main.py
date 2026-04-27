@@ -128,10 +128,22 @@ def flip_tile(col: int, row: int) -> None:
     click(px, pause=DELAY_AFTER_FLIP_CLICK)
 
 
-def screenshot(label: str) -> Path:
+def next_event_dir() -> Path:
     OUTPUT_DIR.mkdir(exist_ok=True)
+    used = {
+        int(p.name[len("event_"):])
+        for p in OUTPUT_DIR.glob("event_*")
+        if p.is_dir() and p.name[len("event_"):].isdigit()
+    }
+    n = max(used, default=0) + 1
+    path = OUTPUT_DIR / f"event_{n}"
+    path.mkdir()
+    return path
+
+
+def screenshot(session_dir: Path, label: str) -> Path:
     ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    path = OUTPUT_DIR / f"{label}_{ts}.png"
+    path = session_dir / f"{label}_{ts}.png"
     pyautogui.screenshot(str(path))
     print(f"\tsaved screenshot: {path}")
     return path
@@ -159,7 +171,7 @@ def choose_6_flips() -> None:
 
 # MAIN LOOP
 
-def do_run(run_index: int, centers: list[tuple[int, int]]) -> None:
+def do_run(run_index: int, centers: list[tuple[int, int]], session_dir: Path) -> None:
     if len(centers) > MAX_FLIPS_PER_RUN:
         raise ValueError(
             f"Run {run_index + 1} has {len(centers)} flips — "
@@ -171,7 +183,7 @@ def do_run(run_index: int, centers: list[tuple[int, int]]) -> None:
     choose_6_flips()
     for col, row in centers:
         flip_tile(col, row)
-    screenshot(f"run{run_index + 1}_revealed")
+    screenshot(session_dir, f"run{run_index + 1}_revealed")
     save_and_quit()
 
 
@@ -182,11 +194,13 @@ def run_full_scout() -> None:
     print("  * The Crystal Sphere choice prompt is on screen")
     print("\t(the one offering 3-flip Gold vs 6-flip Debt)")
     print("  * Game window is focused")
+    session_dir = next_event_dir()
+    print(f"Output folder for this run: {session_dir.resolve()}")
     print(f"Starting in {DELAY_BEFORE_START:.0f}s — move mouse to a corner to abort.")
     time.sleep(DELAY_BEFORE_START)
 
     for i, centers in enumerate(ALL_RUNS):
-        do_run(i, centers)
+        do_run(i, centers, session_dir)
         # After the last run we land on the main menu and STOP.
         # User reloads manually and plays the event with full info.
         if i < len(ALL_RUNS) - 1:
@@ -194,7 +208,7 @@ def run_full_scout() -> None:
             # Re-entering the run drops you back at the event prompt because we never committed (no exit click).
 
     print("\nAll scouting runs complete.")
-    print(f"Screenshots: {OUTPUT_DIR.resolve()}")
+    print(f"Screenshots: {session_dir.resolve()}")
     print("You are now on the main menu. Click Continue, then play the event")
     print("for real using your screenshots as a map.")
 
