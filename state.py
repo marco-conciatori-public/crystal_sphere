@@ -36,6 +36,7 @@ from main import (
 STATES = ("initial", "choice", "map", "paused")
 REFERENCES_DIR = Path("references")
 CAPTURE_COUNTDOWN = 5.0
+MATCH_THRESHOLD = 40.0  # max mean per-channel pixel distance for a valid match
 
 
 def detection_box() -> tuple[int, int, int, int]:
@@ -75,6 +76,25 @@ def _distance(a: Image.Image, b: Image.Image) -> float:
     return sum(stat.mean) / len(stat.mean)
 
 
+def _distance_to(state: str, current: Image.Image | None = None) -> float:
+    ref_path = reference_path(state)
+    if not ref_path.exists():
+        raise SystemExit(
+            f"Missing reference image for state '{state}': {ref_path}\n"
+            f"Capture it with: python main.py capture {state}"
+        )
+    ref = Image.open(ref_path)
+    if current is None:
+        current = capture_region()
+    if ref.size != current.size:
+        raise SystemExit(
+            f"Reference '{state}' has size {ref.size} but live region is "
+            f"{current.size}. Recalibration changes the region — "
+            f"recapture references with: python main.py capture {state}"
+        )
+    return _distance(ref, current)
+
+
 def detect_state() -> tuple[str, dict[str, float]]:
     missing = [s for s in STATES if not reference_path(s).exists()]
     if missing:
@@ -83,17 +103,16 @@ def detect_state() -> tuple[str, dict[str, float]]:
             f"Capture each one with:  python main.py capture <state>"
         )
     current = capture_region()
-    scores: dict[str, float] = {}
-    for s in STATES:
-        ref = Image.open(reference_path(s))
-        if ref.size != current.size:
-            raise SystemExit(
-                f"Reference '{s}' has size {ref.size} but live region is "
-                f"{current.size}. Recalibration changes the region — "
-                f"recapture references with: python main.py capture {s}"
-            )
-        scores[s] = _distance(ref, current)
+    scores = {s: _distance_to(s, current) for s in STATES}
     best = min(scores, key=lambda k: scores[k])
+    if scores[best] > MATCH_THRESHOLD:
+        pretty = ", ".join(f"{s}={scores[s]:.1f}" for s in STATES)
+        raise SystemExit(
+            f"No reference matched the current screen "
+            f"(best: {best}={scores[best]:.1f}, threshold={MATCH_THRESHOLD:.0f}).\n"
+            f"Distances: {pretty}\n"
+            f"Recapture references with: python main.py capture <state>"
+        )
     return best, scores
 
 
@@ -114,4 +133,13 @@ def prepare_for_scout() -> str:
         click(BUTTON_SAVE_AND_QUIT)
         time.sleep(DELAY_RELOAD_TO_EVENT)
         continue_run()
+    distance = _distance_to("choice")
+    print(f"Post-transition distance to 'choice': {distance:.1f}")
+    if distance > MATCH_THRESHOLD:
+        raise SystemExit(
+            f"Expected the Crystal Sphere choice prompt after transitioning "
+            f"from '{state}', but the screen didn't match "
+            f"(distance={distance:.1f}, threshold={MATCH_THRESHOLD:.0f}).\n"
+            f"This script only works for the Crystal Sphere event."
+        )
     return state

@@ -1,3 +1,1 @@
-compose the 3 images
-
-automatic element recognition
+automatic element recognition?
