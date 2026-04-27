@@ -190,7 +190,9 @@ def do_run(run_index: int, centers: list[tuple[int, int]], session_dir: Path) ->
 def run_full_scout() -> None:
     print("Crystal Sphere Auto-Scout")
     print("-" * 50)
-    print("Make sure the game window is focused and shows one of:")
+    from window import ensure_game_focused
+    ensure_game_focused()
+    print("Make sure the game shows one of:")
     print("  * main menu with Continue button")
     print("  * Crystal Sphere choice prompt (3 vs 6 flips)")
     print("  * Crystal Sphere map view")
@@ -259,14 +261,18 @@ def main() -> None:
             sys.exit(1)
         capture_reference(sys.argv[2])
     elif mode == "detect":
-        from state import CAPTURE_COUNTDOWN, STATES, detect_state
-        print(f"Focus the game window. Detecting in {CAPTURE_COUNTDOWN:.0f}s...")
-        time.sleep(CAPTURE_COUNTDOWN)
+        from state import STATES, detect_state
+        from window import ensure_game_focused
+        ensure_game_focused()
         best, scores = detect_state()
         pretty = ", ".join(f"{s}={scores[s]:.1f}" for s in STATES)
         print(f"Detected: {best}  (distances: {pretty})")
+    elif mode == "focus":
+        from window import ensure_game_focused
+        win = ensure_game_focused()
+        print(f"OK — '{win.title}' is focused.")
     else:
-        print(f"Unknown mode: {mode}. Use 'calibrate', 'run', 'compose', 'capture', or 'detect'.")
+        print(f"Unknown mode: {mode}. Use 'calibrate', 'run', 'compose', 'capture', 'detect', or 'focus'.")
         sys.exit(1)
 
 
