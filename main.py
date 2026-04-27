@@ -60,11 +60,11 @@ BUTTON_SAVE_AND_QUIT = (960, 730)  # "Save & Quit" in the pause menu
 BUTTON_CONTINUE_RUN = (780, 685)  # "Continue" on the main menu
 
 # Timing (seconds)
-DELAY_AFTER_FLIP_CLICK = 0.9  # tile flip animation
+DELAY_AFTER_FLIP_CLICK = 0.8  # tile flip animation
 DELAY_AFTER_BUTTON_CLICK = 0.7
-DELAY_OPENING_PAUSE_MENU = 0.8
-DELAY_RELOAD_TO_EVENT = 3.5  # main-menu -> back inside event
-DELAY_BEFORE_START = 2.0  # countdown before the script acts
+DELAY_OPENING_PAUSE_MENU = 0.7
+DELAY_RELOAD_TO_EVENT = 3.0  # main-menu -> back inside event
+DELAY_BEFORE_START = 1.5  # countdown before the script acts
 
 # Output
 OUTPUT_DIR = Path("output")
