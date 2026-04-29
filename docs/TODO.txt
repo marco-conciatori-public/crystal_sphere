@@ -1,6 +1,3 @@
 automatic element recognition?
     best flips suggestion?
 create a readme
-try to find an alternative to the manual coordinate calibration
-- ask the os for screen resolution?
-- use a template image of the game and find it on the screen to get the coordinates?
