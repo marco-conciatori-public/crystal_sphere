@@ -19,12 +19,12 @@ USAGE
 ------------------------------------------------------------
 First time only — calibrate coordinates for your monitor:
 
-    python main.py calibrate
+    uv run python main.py calibrate
 
-That command prints your cursor position every 0.5s. Hover over each landmark
-listed in the CONFIG section below and write its (x, y) into this file. Then run:
+That command prints your cursor position. Hover over each landmark it lists
+and paste the (x, y) numbers into calibration.toml. Then run:
 
-    python main.py run
+    uv run python main.py run
 
 Failsafe: move your mouse into any screen corner to abort instantly.
 ------------------------------------------------------------
@@ -32,6 +32,7 @@ Failsafe: move your mouse into any screen corner to abort instantly.
 
 import sys
 import time
+import tomllib
 from datetime import datetime
 from pathlib import Path
 import pyautogui
@@ -40,24 +41,70 @@ pyautogui.FAILSAFE = True
 # tiny gap between every PyAutoGUI call
 pyautogui.PAUSE = 0.05
 
-# CONFIG — CALIBRATE THESE FOR YOUR SCREEN
+# CALIBRATION — pixel coordinates load from calibration.toml.
+# Edit calibration.toml (not this file) to tune values for your screen.
 
-# Grid geometry
-# Two real tiles used for calibration — corners are off-map so pick visible ones.
-# CALIB_A: left-most tile on row 3  (col 0, row 3)
-# CALIB_B: bottom-most tile on row 10 (col 7, row 10)
-# Hover over each tile center in calibration mode and paste the pixel coords here.
+CALIBRATION_FILE = Path(__file__).parent / "calibration.toml"
+
+
+# calibrate mode is the recovery path for a missing/incomplete file, so it
+# must work even when calibration.toml hasn't been filled in yet.
+_CALIBRATING_ONLY = len(sys.argv) > 1 and sys.argv[1] == "calibrate"
+
+
+def _load_calibration() -> dict:
+    if not CALIBRATION_FILE.exists():
+        if _CALIBRATING_ONLY:
+            return {}
+        raise SystemExit(
+            f"Calibration file not found: {CALIBRATION_FILE}\n"
+            f"Run `uv run python main.py calibrate` to measure pixel coords, then\n"
+            f"create calibration.toml with those values (see the template\n"
+            f"committed in this repo)."
+        )
+    with CALIBRATION_FILE.open("rb") as f:
+        try:
+            return tomllib.load(f)
+        except tomllib.TOMLDecodeError as e:
+            raise SystemExit(
+                f"Could not parse {CALIBRATION_FILE}: {e}\n"
+                f"Keep the [section] headers and use [x, y] for each pair."
+            )
+
+
+def _pair(data: dict, section: str, key: str) -> tuple[int, int]:
+    if _CALIBRATING_ONLY and section not in data:
+        return (0, 0)  # placeholder, calibrate mode never reads it
+    try:
+        value = data[section][key]
+    except KeyError:
+        raise SystemExit(
+            f"Missing [{section}].{key} in {CALIBRATION_FILE}.\n"
+            f"Add it as `{key} = [x, y]`."
+        )
+    if not (isinstance(value, list) and len(value) == 2):
+        raise SystemExit(
+            f"[{section}].{key} in {CALIBRATION_FILE} must be a list of two "
+            f"numbers like `{key} = [123, 456]`, got {value!r}."
+        )
+    return int(value[0]), int(value[1])
+
+
+_CAL = _load_calibration()
+
+# Grid geometry — the grid coords below pair with the reference tiles
+# described in calibration.toml. Don't change these without also changing
+# which tiles the user is asked to hover over during calibration.
 CALIB_A_GRID = (0, 3)
-CALIB_A_PIXEL = (470, 520)   # measure with: python main.py calibrate
-
+CALIB_A_PIXEL = _pair(_CAL, "grid", "calib_a_pixel")
 CALIB_B_GRID = (7, 10)
-CALIB_B_PIXEL = (885, 935)  # measure with: python main.py calibrate
+CALIB_B_PIXEL = _pair(_CAL, "grid", "calib_b_pixel")
 
 # UI buttons
-BUTTON_6_FLIPS = (1250, 750)  # "Take Debt for 6 Divines" option
+BUTTON_6_FLIPS = _pair(_CAL, "buttons", "button_6_flips")
 BUTTON_PAUSE_MENU_KEY = "escape"  # key that opens the in-game menu
-BUTTON_SAVE_AND_QUIT = (960, 730)  # "Save & Quit" in the pause menu
-BUTTON_CONTINUE_RUN = (780, 685)  # "Continue" on the main menu
+BUTTON_SAVE_AND_QUIT = _pair(_CAL, "buttons", "button_save_and_quit")
+BUTTON_CONTINUE_RUN = _pair(_CAL, "buttons", "button_continue_run")
 
 # Timing (seconds)
 DELAY_AFTER_FLIP_CLICK = 0.8  # tile flip animation
@@ -226,12 +273,14 @@ def run_full_scout() -> None:
 def calibrate() -> None:
     """Print cursor position continuously so you can read off coordinates."""
     print("Calibration mode. Press Ctrl+C to stop.")
-    print("Hover over each landmark and note (x, y):")
-    print("  - center of tile (col 0, row 3)   -> CALIB_A_PIXEL")
-    print("  - center of tile (col 7, row 10)  -> CALIB_B_PIXEL")
-    print("  - the '6 flips / Debt' button     -> BUTTON_6_FLIPS")
-    print("  - 'Save & Quit' in pause menu  -> BUTTON_SAVE_AND_QUIT")
-    print("  - 'Continue' on main menu      -> BUTTON_CONTINUE_RUN")
+    print(f"Open {CALIBRATION_FILE} in a text editor.")
+    print("Hover over each landmark below, note (x, y), and paste the numbers")
+    print("into the matching setting:")
+    print("  - center of tile (col 0, row 3)   -> [grid]    calib_a_pixel")
+    print("  - center of tile (col 7, row 10)  -> [grid]    calib_b_pixel")
+    print("  - the '6 flips / Debt' button     -> [buttons] button_6_flips")
+    print("  - 'Save & Quit' in pause menu     -> [buttons] button_save_and_quit")
+    print("  - 'Continue' on main menu         -> [buttons] button_continue_run")
     print()
     try:
         while True:
@@ -257,7 +306,7 @@ def main() -> None:
     elif mode == "capture":
         from state import STATES, capture_reference
         if len(sys.argv) < 3 or sys.argv[2] not in STATES:
-            print(f"Usage: python main.py capture <{'|'.join(STATES)}>")
+            print(f"Usage: uv run python main.py capture <{'|'.join(STATES)}>")
             sys.exit(1)
         capture_reference(sys.argv[2])
     elif mode == "detect":

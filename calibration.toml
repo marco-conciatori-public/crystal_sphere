@@ -1,0 +1,35 @@
+# Crystal Sphere Auto-Scout — your screen calibration
+#
+# These pixel coordinates are specific to YOUR screen, monitor scaling,
+# and where the Slay the Spire 2 window is positioned. Re-measure them
+# whenever any of those change.
+#
+# How to fill this in:
+#   1. Run:  python main.py calibrate
+#   2. Hover the cursor over each landmark mentioned below.
+#   3. The calibrator prints (x, y) — replace the two numbers next to the matching setting. The order is [x, y].
+#   4. Save this file. Then run:  python main.py run
+
+[grid]
+# Two reference tiles. The script uses these to figure out the position
+# of every other tile by linear interpolation. Pick tiles that are far
+# apart and clearly visible — the grid is circle-shaped, so the four
+# corners of the 11x11 array are off-map. Don't use those.
+
+# Center of the tile at column 0, row 3  (left-most tile on row 3).
+calib_a_pixel = [470, 520]
+
+# Center of the tile at column 7, row 10  (bottom-most tile on row 10).
+calib_b_pixel = [885, 935]
+
+[buttons]
+# UI buttons the script clicks during the scouting loop.
+
+# "Take Debt for 6 Divines" — the choice prompt's 6-flip option.
+button_6_flips = [1250, 750]
+
+# "Save & Quit" inside the in-game pause menu (opens with Esc).
+button_save_and_quit = [960, 730]
+
+# "Continue" on the main menu (used to re-enter the un-committed run).
+button_continue_run = [780, 685]
