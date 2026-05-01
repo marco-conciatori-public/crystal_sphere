@@ -17,9 +17,11 @@ main menu so you can play the run manually.
 
 ## Setup
 
+Open a terminal in the project's main folder and type:
 ```bash
 uv sync
 ```
+This creates the virtual environment needed.
 
 Pixel coordinates are screen-resolution-specific. Calibrate before the
 first run (and again whenever your monitor or game window changes):
@@ -28,7 +30,8 @@ first run (and again whenever your monitor or game window changes):
 uv run python main.py calibrate
 ```
 
-Follow the on-screen prompts and write the printed values into `calibration.toml`.
+Follow the on-screen prompts and write the printed values into `calibration.toml`. For detailed,
+visual instructions see [docs/Calibration_details.pptx](docs/Calibration_details.pptx).
 
 ## Usage
 
