@@ -48,4 +48,10 @@ uv run python main.py compose    # rebuild composite for the latest event_N
 
 Output lands in `./output/event_N/` as per-run screenshots plus a final `composite_revealed.png`.
 
-Move the cursor into any screen corner to interrupt the script.
+## Launcher (optional)
+
+`Crystal Sphere.bat` is a Windows double-click launcher. Copy it anywhere you like (Desktop, a notes folder, etc.).
+When clicked it runs the full program and copies the `composite_revealed.png` into the launcher's own folder
+(overwriting any previous copy, but originals stay in `output/event_N/`).
+
+To use it, edit the `PROJECT_DIR` line at the top of the `.bat` with the path to the project.
