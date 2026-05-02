@@ -56,7 +56,7 @@ The spec bundles `assets/references/` and uses `assets/launcher_icon.ico` as the
 
 - `src/` — Python sources (`main.py`, `compose.py`, `state.py`, `window.py`).
 - `assets/` — reference images for state detection (`assets/references/{initial,choice,map,paused}.png`) and the launcher icon (`launcher_icon.ico`/`.png`).
-- `calibration.toml`, `pyproject.toml`, `uv.lock`, `Crystal Sphere.bat`, `README.md`, `CLAUDE.md` stay at the repo root.
+- `calibration.toml`, `pyproject.toml`, `uv.lock`, `README.md`, `CLAUDE.md` stay at the repo root.
 - `output/`, `calibration.toml`, and `assets/references/` are anchored to `_app_root()` — repo root when running from source, exe directory when frozen. All three are cwd-independent.
 - `crystal_sphere.spec` is the PyInstaller build definition.
 - `build/` and `dist/` are PyInstaller's working/output dirs (gitignored).
@@ -67,7 +67,6 @@ The spec bundles `assets/references/` and uses `assets/launcher_icon.ico` as the
 - `src/compose.py` — image composition. Imports calibration + `ALL_RUNS` from `main`, computes which run reveals each real tile, and pastes the per-tile crops onto a base image. Has its own `REAL_TILES` mask mirroring the ASCII grid in `main.py` — keep the two in sync if either changes. Asserts every real tile has an owning run, so a broken `RUN_*` pattern fails loudly.
 - `src/state.py` — pre-flight state detection. Recognizes 4 acceptable starting states (`initial`/`choice`/`map`/`paused`) by cropping a region anchored to the calibration (top-left at `CALIB_A_PIXEL`, width = 2·(xb−xa), height = (yb−ya)) and matching it to per-state references in `assets/references/` via mean per-channel pixel distance. `prepare_for_scout()` then performs whichever transition is needed to land in `choice` before the scouting loop runs. References are calibration-coupled — recapture (`capture <state>` mode) after recalibration, since the region size will change. `reference_path()` prefers `EXTERNAL_REFERENCES_DIR` (writable, next to the .exe in frozen mode) and falls back to `BUNDLED_REFERENCES_DIR` (the PyInstaller bundle); `capture_reference` always writes to the external location.
 - `src/window.py` — Slay the Spire 2 window detection and focus. Uses `pygetwindow` (transitive dep of pyautogui). `ensure_game_focused()` looks up `GAME_WINDOW_TITLE` ("Slay the Spire 2", substring match), restores if minimized, and brings the window to the foreground — falling back to a minimize+restore trick when Windows blocks `SetForegroundWindow`. Raises `SystemExit` with a clear message if the game isn't running or focus can't be set. Called at the start of `run` and `detect`.
-- `Crystal Sphere.bat` — Windows double-click launcher meant to be copied anywhere on the user's machine. Hardcodes `PROJECT_DIR`, `pushd`s into it, runs `uv run python src/main.py`, then copies the latest `output/event_N/composite_revealed.png` next to the launcher (`%~dp0`). Picks the latest event folder by **numeric** suffix via a small embedded PowerShell call (not alphabetic — `event_10` must outrank `event_2`); keep that logic if `event_N` naming ever changes. Skips the copy on non-zero exit so a FAILSAFE/aborted run doesn't ship a stale image.
 
 ## Open work
 
