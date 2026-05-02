@@ -6,3 +6,8 @@ dependencies = [
     'pyautogui',
     'pillow',
 ]
+
+[dependency-groups]
+dev = [
+    'pyinstaller',
+]

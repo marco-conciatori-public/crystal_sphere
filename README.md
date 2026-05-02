@@ -55,3 +55,14 @@ When clicked it runs the full program and copies the `composite_revealed.png` in
 (overwriting any previous copy, but originals stay in `output/event_N/`).
 
 To use it, edit the `PROJECT_DIR` line at the top of the `.bat` with the path to the project.
+
+## Standalone executable
+
+To build a single-file Windows .exe (no Python install required to run):
+
+```bash
+uv sync --group dev
+uv run pyinstaller crystal_sphere.spec --noconfirm
+```
+
+The result is `dist/Crystal Sphere.exe`. It looks for `calibration.toml` next to itself and writes `output/` next to itself. Reference images for state detection are bundled into the .exe but can be overridden by recapturing them — recaptures land in `<exe folder>/assets/references/` and take precedence over the bundled defaults. Calibrate first with `"Crystal Sphere.exe" calibrate`, then recapture references with `"Crystal Sphere.exe" capture <state>` for each of `initial`, `choice`, `map`, `paused`.

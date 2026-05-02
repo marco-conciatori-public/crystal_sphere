@@ -22,13 +22,25 @@ uv run python src/main.py compose 3         # rebuild composite for event_3
 uv run python src/main.py                   # same as 'run'
 ```
 
-There are no tests, lint config, or build step.
+There are no tests or lint config.
+
+PyInstaller build (single-file Windows .exe):
+
+```bash
+uv sync --group dev                              # adds pyinstaller to .venv
+uv run pyinstaller crystal_sphere.spec --noconfirm
+# Output: dist/Crystal Sphere.exe (~19 MB)
+```
+
+The spec bundles `assets/references/` and uses `assets/launcher_icon.ico` as the .exe icon. `dist/` and `build/` are gitignored.
 
 ## Architecture
 
 `main.py` is the entire program. Worth knowing:
 
 - **Calibration values live in `calibration.toml`** at the repo root and are loaded by `main.py` at import time (`_load_calibration` / `_pair`). The exposed module constants (`CALIB_A_PIXEL`, `CALIB_B_PIXEL`, `BUTTON_*`) keep the same names so `compose.py` and `state.py` can keep importing them. These pixel values are screen-resolution-specific and must be remeasured via `calibrate` mode whenever the monitor or game window changes. `tile_to_pixel()` linearly interpolates every tile from those two reference points, so the two calibration tiles must be **far apart** and on **real (non-corner) tiles** of the circle. The reference tile *grid* coords (`CALIB_A_GRID`, `CALIB_B_GRID`) stay in `main.py` because they're a design choice, not a per-screen measurement — they pair with the tiles the user is told to hover over during calibrate. `calibrate` mode tolerates a missing `calibration.toml` (returns `(0,0)` placeholders) so it remains usable as the recovery path; other modes fail loudly with a SystemExit if the file is missing or malformed.
+
+- **Path resolution is frozen-aware.** `_app_root()` in `main.py` returns the .exe's directory when running under PyInstaller (`sys.frozen`), otherwise the repo root. `_bundled_root()` returns `sys._MEIPASS` (the temp extraction dir) when frozen, otherwise the repo root. `CALIBRATION_FILE` and `OUTPUT_DIR` use `_app_root()` so they're user-writable next to the .exe. State references prefer `_app_root()/assets/references/` (user captures) and fall back to `_bundled_root()/assets/references/` (bundled defaults) — `capture` always writes to the external location. `cli_command()` produces invocation hints that adapt to source vs frozen mode for error messages.
 
 - **The grid is circle-shaped, not square.** The corner cells of the 11×11 array are off-map. The ASCII map in `main.py` (around the `RUN_*` constants) is the source of truth for which tiles exist. `RUN_1`/`RUN_2`/`RUN_3` are precomputed 3×3-coverage centers chosen so that their unions cover every real tile — do not edit these casually.
 
@@ -45,13 +57,15 @@ There are no tests, lint config, or build step.
 - `src/` — Python sources (`main.py`, `compose.py`, `state.py`, `window.py`).
 - `assets/` — reference images for state detection (`assets/references/{initial,choice,map,paused}.png`) and the launcher icon (`launcher_icon.ico`/`.png`).
 - `calibration.toml`, `pyproject.toml`, `uv.lock`, `Crystal Sphere.bat`, `README.md`, `CLAUDE.md` stay at the repo root.
-- `output/` is created at the repo root by `run`. `CALIBRATION_FILE` and `REFERENCES_DIR` are anchored to the repo root via `__file__` (so they're cwd-independent), but `OUTPUT_DIR` is still cwd-relative — commands must be run from the repo root, which is what the launcher and README assume.
+- `output/`, `calibration.toml`, and `assets/references/` are anchored to `_app_root()` — repo root when running from source, exe directory when frozen. All three are cwd-independent.
+- `crystal_sphere.spec` is the PyInstaller build definition.
+- `build/` and `dist/` are PyInstaller's working/output dirs (gitignored).
 
 ## Modules
 
 - `src/main.py` — automation driver (PyAutoGUI clicks, calibration, scouting loop). Owns the calibration constants and `tile_to_pixel`.
 - `src/compose.py` — image composition. Imports calibration + `ALL_RUNS` from `main`, computes which run reveals each real tile, and pastes the per-tile crops onto a base image. Has its own `REAL_TILES` mask mirroring the ASCII grid in `main.py` — keep the two in sync if either changes. Asserts every real tile has an owning run, so a broken `RUN_*` pattern fails loudly.
-- `src/state.py` — pre-flight state detection. Recognizes 4 acceptable starting states (`initial`/`choice`/`map`/`paused`) by cropping a region anchored to the calibration (top-left at `CALIB_A_PIXEL`, width = 2·(xb−xa), height = (yb−ya)) and matching it to per-state references in `assets/references/` via mean per-channel pixel distance. `prepare_for_scout()` then performs whichever transition is needed to land in `choice` before the scouting loop runs. References are calibration-coupled — recapture (`uv run python src/main.py capture <state>`) after recalibration, since the region size will change.
+- `src/state.py` — pre-flight state detection. Recognizes 4 acceptable starting states (`initial`/`choice`/`map`/`paused`) by cropping a region anchored to the calibration (top-left at `CALIB_A_PIXEL`, width = 2·(xb−xa), height = (yb−ya)) and matching it to per-state references in `assets/references/` via mean per-channel pixel distance. `prepare_for_scout()` then performs whichever transition is needed to land in `choice` before the scouting loop runs. References are calibration-coupled — recapture (`capture <state>` mode) after recalibration, since the region size will change. `reference_path()` prefers `EXTERNAL_REFERENCES_DIR` (writable, next to the .exe in frozen mode) and falls back to `BUNDLED_REFERENCES_DIR` (the PyInstaller bundle); `capture_reference` always writes to the external location.
 - `src/window.py` — Slay the Spire 2 window detection and focus. Uses `pygetwindow` (transitive dep of pyautogui). `ensure_game_focused()` looks up `GAME_WINDOW_TITLE` ("Slay the Spire 2", substring match), restores if minimized, and brings the window to the foreground — falling back to a minimize+restore trick when Windows blocks `SetForegroundWindow`. Raises `SystemExit` with a clear message if the game isn't running or focus can't be set. Called at the start of `run` and `detect`.
 - `Crystal Sphere.bat` — Windows double-click launcher meant to be copied anywhere on the user's machine. Hardcodes `PROJECT_DIR`, `pushd`s into it, runs `uv run python src/main.py`, then copies the latest `output/event_N/composite_revealed.png` next to the launcher (`%~dp0`). Picks the latest event folder by **numeric** suffix via a small embedded PowerShell call (not alphabetic — `event_10` must outrank `event_2`); keep that logic if `event_N` naming ever changes. Skips the copy on non-zero exit so a FAILSAFE/aborted run doesn't ship a stale image.
 

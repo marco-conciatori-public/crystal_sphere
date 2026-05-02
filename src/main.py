@@ -41,10 +41,33 @@ pyautogui.FAILSAFE = True
 # tiny gap between every PyAutoGUI call
 pyautogui.PAUSE = 0.05
 
+
+# Resource roots — different when running from source vs as a PyInstaller .exe.
+# _app_root: user-writable location (calibration.toml, output/, recaptured references).
+# _bundled_root: read-only resources baked into the build (default references).
+def _app_root() -> Path:
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parent.parent
+
+
+def _bundled_root() -> Path:
+    if getattr(sys, "frozen", False):
+        return Path(getattr(sys, "_MEIPASS", Path(sys.executable).resolve().parent))
+    return Path(__file__).resolve().parent.parent
+
+
+def cli_command(args: str) -> str:
+    """Render an invocation hint, matching how the user is actually running this."""
+    if getattr(sys, "frozen", False):
+        return f'"{Path(sys.executable).name}" {args}'
+    return f"uv run python src/main.py {args}"
+
+
 # CALIBRATION — pixel coordinates load from calibration.toml.
 # Edit calibration.toml (not this file) to tune values for your screen.
 
-CALIBRATION_FILE = Path(__file__).resolve().parent.parent / "calibration.toml"
+CALIBRATION_FILE = _app_root() / "calibration.toml"
 
 
 # calibrate mode is the recovery path for a missing/incomplete file, so it
@@ -58,7 +81,7 @@ def _load_calibration() -> dict:
             return {}
         raise SystemExit(
             f"Calibration file not found: {CALIBRATION_FILE}\n"
-            f"Run `uv run python src/main.py calibrate` to measure pixel coords, then\n"
+            f"Run `{cli_command('calibrate')}` to measure pixel coords, then\n"
             f"create calibration.toml with those values (see the template\n"
             f"committed in this repo)."
         )
@@ -114,7 +137,7 @@ DELAY_RELOAD_TO_EVENT = 3.0  # main-menu -> back inside event
 DELAY_BEFORE_START = 1.5  # countdown before the script acts
 
 # Output
-OUTPUT_DIR = Path("output")
+OUTPUT_DIR = _app_root() / "output"
 
 # FLIP PATTERN — covers the full circle in 3 runs (5 + 5 + 4 = 14 clicks)
 #
@@ -306,7 +329,8 @@ def main() -> None:
     elif mode == "capture":
         from state import STATES, capture_reference
         if len(sys.argv) < 3 or sys.argv[2] not in STATES:
-            print(f"Usage: uv run python src/main.py capture <{'|'.join(STATES)}>")
+            states_choice = "|".join(STATES)
+            print(f"Usage: {cli_command(f'capture <{states_choice}>')}")
             sys.exit(1)
         capture_reference(sys.argv[2])
     elif mode == "detect":

@@ -28,13 +28,20 @@ from main import (
     BUTTON_SAVE_AND_QUIT,
     CALIB_A_PIXEL, CALIB_B_PIXEL,
     DELAY_RELOAD_TO_EVENT,
+    _app_root,
+    _bundled_root,
+    cli_command,
     click,
     continue_run,
     save_and_quit,
 )
 
 STATES = ("initial", "choice", "map", "paused")
-REFERENCES_DIR = Path(__file__).resolve().parent.parent / "assets" / "references"
+# References are calibration-coupled. In a PyInstaller build the bundled refs
+# are defaults; the user is expected to recapture them after calibrating, and
+# captures are written next to the .exe.
+EXTERNAL_REFERENCES_DIR = _app_root() / "assets" / "references"
+BUNDLED_REFERENCES_DIR = _bundled_root() / "assets" / "references"
 CAPTURE_COUNTDOWN = 5.0
 MATCH_THRESHOLD = 40.0  # max mean per-channel pixel distance for a valid match
 
@@ -53,12 +60,20 @@ def capture_region() -> Image.Image:
 def reference_path(state: str) -> Path:
     if state not in STATES:
         raise ValueError(f"Unknown state '{state}'. Valid: {STATES}")
-    return REFERENCES_DIR / f"{state}.png"
+    external = EXTERNAL_REFERENCES_DIR / f"{state}.png"
+    if external.exists():
+        return external
+    bundled = BUNDLED_REFERENCES_DIR / f"{state}.png"
+    if bundled.exists():
+        return bundled
+    return external  # nothing on disk yet — capture would write here
 
 
 def capture_reference(state: str, delay: float = CAPTURE_COUNTDOWN) -> Path:
-    out = reference_path(state)
-    REFERENCES_DIR.mkdir(exist_ok=True)
+    if state not in STATES:
+        raise ValueError(f"Unknown state '{state}'. Valid: {STATES}")
+    out = EXTERNAL_REFERENCES_DIR / f"{state}.png"
+    EXTERNAL_REFERENCES_DIR.mkdir(parents=True, exist_ok=True)
     print(f"Capturing reference for state '{state}'.")
     print(f"Put the game in the '{state}' state and focus the window.")
     print(f"Capturing in {delay:.0f}s...")
@@ -81,7 +96,7 @@ def _distance_to(state: str, current: Image.Image | None = None) -> float:
     if not ref_path.exists():
         raise SystemExit(
             f"Missing reference image for state '{state}': {ref_path}\n"
-            f"Capture it with: uv run python src/main.py capture {state}"
+            f"Capture it with: {cli_command(f'capture {state}')}"
         )
     ref = Image.open(ref_path)
     if current is None:
@@ -90,7 +105,7 @@ def _distance_to(state: str, current: Image.Image | None = None) -> float:
         raise SystemExit(
             f"Reference '{state}' has size {ref.size} but live region is "
             f"{current.size}. Recalibration changes the region — "
-            f"recapture references with: uv run python src/main.py capture {state}"
+            f"recapture references with: {cli_command(f'capture {state}')}"
         )
     return _distance(ref, current)
 
@@ -100,7 +115,7 @@ def detect_state() -> tuple[str, dict[str, float]]:
     if missing:
         raise SystemExit(
             f"Missing reference images for: {', '.join(missing)}.\n"
-            f"Capture each one with:  uv run python src/main.py capture <state>"
+            f"Capture each one with:  {cli_command('capture <state>')}"
         )
     current = capture_region()
     scores = {s: _distance_to(s, current) for s in STATES}
@@ -111,7 +126,7 @@ def detect_state() -> tuple[str, dict[str, float]]:
             f"No reference matched the current screen "
             f"(best: {best}={scores[best]:.1f}, threshold={MATCH_THRESHOLD:.0f}).\n"
             f"Distances: {pretty}\n"
-            f"Recapture references with: uv run python src/main.py capture <state>"
+            f"Recapture references with: {cli_command('capture <state>')}"
         )
     return best, scores
 
