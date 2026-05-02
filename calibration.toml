@@ -5,10 +5,10 @@
 # whenever any of those change.
 #
 # How to fill this in:
-#   1. Run:  uv run python main.py calibrate
+#   1. Run:  uv run python src/main.py calibrate
 #   2. Hover the cursor over each landmark mentioned below.
 #   3. The calibrator prints (x, y) — replace the two numbers next to the matching setting. The order is [x, y].
-#   4. Save this file. Then run:  uv run python main.py run
+#   4. Save this file. Then run:  uv run python src/main.py run
 
 [grid]
 # Two reference tiles. The script uses these to figure out the position

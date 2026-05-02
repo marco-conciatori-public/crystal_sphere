@@ -19,12 +19,12 @@ USAGE
 ------------------------------------------------------------
 First time only — calibrate coordinates for your monitor:
 
-    uv run python main.py calibrate
+    uv run python src/main.py calibrate
 
 That command prints your cursor position. Hover over each landmark it lists
 and paste the (x, y) numbers into calibration.toml. Then run:
 
-    uv run python main.py run
+    uv run python src/main.py run
 
 Failsafe: move your mouse into any screen corner to abort instantly.
 ------------------------------------------------------------
@@ -58,7 +58,7 @@ def _load_calibration() -> dict:
             return {}
         raise SystemExit(
             f"Calibration file not found: {CALIBRATION_FILE}\n"
-            f"Run `uv run python main.py calibrate` to measure pixel coords, then\n"
+            f"Run `uv run python src/main.py calibrate` to measure pixel coords, then\n"
             f"create calibration.toml with those values (see the template\n"
             f"committed in this repo)."
         )
@@ -306,7 +306,7 @@ def main() -> None:
     elif mode == "capture":
         from state import STATES, capture_reference
         if len(sys.argv) < 3 or sys.argv[2] not in STATES:
-            print(f"Usage: uv run python main.py capture <{'|'.join(STATES)}>")
+            print(f"Usage: uv run python src/main.py capture <{'|'.join(STATES)}>")
             sys.exit(1)
         capture_reference(sys.argv[2])
     elif mode == "detect":

@@ -81,7 +81,7 @@ def _distance_to(state: str, current: Image.Image | None = None) -> float:
     if not ref_path.exists():
         raise SystemExit(
             f"Missing reference image for state '{state}': {ref_path}\n"
-            f"Capture it with: uv run python main.py capture {state}"
+            f"Capture it with: uv run python src/main.py capture {state}"
         )
     ref = Image.open(ref_path)
     if current is None:
@@ -90,7 +90,7 @@ def _distance_to(state: str, current: Image.Image | None = None) -> float:
         raise SystemExit(
             f"Reference '{state}' has size {ref.size} but live region is "
             f"{current.size}. Recalibration changes the region — "
-            f"recapture references with: uv run python main.py capture {state}"
+            f"recapture references with: uv run python src/main.py capture {state}"
         )
     return _distance(ref, current)
 
@@ -100,7 +100,7 @@ def detect_state() -> tuple[str, dict[str, float]]:
     if missing:
         raise SystemExit(
             f"Missing reference images for: {', '.join(missing)}.\n"
-            f"Capture each one with:  uv run python main.py capture <state>"
+            f"Capture each one with:  uv run python src/main.py capture <state>"
         )
     current = capture_region()
     scores = {s: _distance_to(s, current) for s in STATES}
@@ -111,7 +111,7 @@ def detect_state() -> tuple[str, dict[str, float]]:
             f"No reference matched the current screen "
             f"(best: {best}={scores[best]:.1f}, threshold={MATCH_THRESHOLD:.0f}).\n"
             f"Distances: {pretty}\n"
-            f"Recapture references with: uv run python main.py capture <state>"
+            f"Recapture references with: uv run python src/main.py capture <state>"
         )
     return best, scores
 

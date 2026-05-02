@@ -2,7 +2,7 @@
 Compose the 3 scouting screenshots into a single fully-revealed map image.
 
 Each screenshot reveals a different subset of tiles (per RUN_1/RUN_2/RUN_3
-in main.py). For every real tile we copy its pixels from the screenshot of
+in src/main.py). For every real tile we copy its pixels from the screenshot of
 the run that revealed it, pasted onto a base image (run 1) so the
 surrounding UI and unrevealed corners are preserved.
 """
@@ -20,7 +20,7 @@ from main import (
 )
 
 
-# Circle-shaped grid mask — mirrors the ASCII map in main.py.
+# Circle-shaped grid mask — mirrors the ASCII map in src/main.py.
 _GRID_MASK = [
     "...11111...",
     "..1111111..",
