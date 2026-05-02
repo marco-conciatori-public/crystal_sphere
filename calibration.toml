@@ -5,21 +5,17 @@
 # whenever any of those change.
 #
 # How to fill this in:
-#   1. Run:  uv run python src/main.py calibrate
-#   2. Hover the cursor over each landmark mentioned below.
-#   3. The calibrator prints (x, y) — replace the two numbers next to the matching setting. The order is [x, y].
-#   4. Save this file. Then run:  uv run python src/main.py run
+#   1. Run calibrate
+#   2. Hover the cursor over each landmark mentioned below
+#   3. The calibrator prints (x, y) — substitute the two numbers next to the matching setting. The order is [x, y]
+#   4. Save this file
 
 [grid]
-# Two reference tiles. The script uses these to figure out the position
-# of every other tile by linear interpolation. Pick tiles that are far
-# apart and clearly visible — the grid is circle-shaped, so the four
-# corners of the 11x11 array are off-map. Don't use those.
 
-# Center of the tile at column 0, row 3  (left-most tile on row 3).
+# Center of the tile at column 1, row 4  (left-most tile on row 4).
 calib_a_pixel = [470, 520]
 
-# Center of the tile at column 7, row 10  (bottom-most tile on row 10).
+# Center of the tile at column 8, row 11  (bottom-most tile on row 11).
 calib_b_pixel = [885, 935]
 
 [buttons]

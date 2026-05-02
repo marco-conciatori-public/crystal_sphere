@@ -69,6 +69,44 @@ def cli_command(args: str) -> str:
 
 CALIBRATION_FILE = _app_root() / "calibration.toml"
 
+# Written when calibrate mode runs against a missing file. Tile coordinates in
+# the user-facing comments are 1-based for readability; the internal grid in
+# CALIB_A_GRID / CALIB_B_GRID stays 0-based.
+CALIBRATION_TEMPLATE = """\
+# Crystal Sphere Auto-Scout — your screen calibration
+#
+# These pixel coordinates are specific to YOUR screen, monitor scaling,
+# and where the Slay the Spire 2 window is positioned. Re-measure them
+# whenever any of those change.
+#
+# How to fill this in:
+#   1. Run calibrate
+#   2. Open Slay the Spire 2 when at the Crystal Sphere event
+#   2. Hover the cursor over each landmark mentioned below
+#   3. The calibrator prints (x, y). Substitute the two numbers next to the matching setting
+#   4. Save this file
+
+[grid]
+
+# Center of the tile at column 1, row 4  (left-most tile on row 4).
+calib_a_pixel = [470, 520]
+
+# Center of the tile at column 8, row 11  (bottom-most tile on row 11).
+calib_b_pixel = [885, 935]
+
+[buttons]
+# UI buttons the script clicks during the scouting loop.
+
+# "Take Debt for 6 Divines" — the choice prompt's 6-flip option.
+button_6_flips = [1250, 750]
+
+# "Save & Quit" inside the in-game pause menu (opens with Esc).
+button_save_and_quit = [960, 730]
+
+# "Continue" on the main menu (used to re-enter the un-committed run).
+button_continue_run = [780, 685]
+"""
+
 
 # calibrate mode is the recovery path for a missing/incomplete file, so it
 # must work even when calibration.toml hasn't been filled in yet.
@@ -295,12 +333,16 @@ def run_full_scout() -> None:
 
 def calibrate() -> None:
     """Print cursor position continuously so you can read off coordinates."""
+    if not CALIBRATION_FILE.exists():
+        CALIBRATION_FILE.write_text(CALIBRATION_TEMPLATE, encoding="utf-8")
+        print(f"Created template: {CALIBRATION_FILE}")
+        print()
     print("Calibration mode. Press Ctrl+C to stop.")
     print(f"Open {CALIBRATION_FILE} in a text editor.")
     print("Hover over each landmark below, note (x, y), and paste the numbers")
     print("into the matching setting:")
-    print("  - center of tile (col 0, row 3)   -> [grid]    calib_a_pixel")
-    print("  - center of tile (col 7, row 10)  -> [grid]    calib_b_pixel")
+    print("  - center of tile (col 1, row 4)   -> [grid]    calib_a_pixel")
+    print("  - center of tile (col 8, row 11)  -> [grid]    calib_b_pixel")
     print("  - the '6 flips / Debt' button     -> [buttons] button_6_flips")
     print("  - 'Save & Quit' in pause menu     -> [buttons] button_save_and_quit")
     print("  - 'Continue' on main menu         -> [buttons] button_continue_run")
