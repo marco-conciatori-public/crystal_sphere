@@ -27,7 +27,7 @@ Pixel coordinates are screen-resolution-specific. Calibrate before the
 first run (and again whenever your monitor or game window changes):
 
 ```bash
-uv run python main.py calibrate
+uv run python src/main.py calibrate
 ```
 
 Follow the on-screen prompts and write the printed values into `calibration.toml`. For detailed,
@@ -36,14 +36,14 @@ visual instructions see [docs/Calibration_details.pptx](docs/Calibration_details
 ## Usage
 
 ```bash
-uv run python main.py           # run the full program and get the explored map's image
+uv run python src/main.py           # run the full program and get the explored map's image
 ```
 
 Other modes:
 ```bash
-uv run python main.py focus      # bring the game window to the foreground
-uv run python main.py detect     # detect current state without acting
-uv run python main.py compose    # rebuild composite for the latest event_N
+uv run python src/main.py focus      # bring the game window to the foreground
+uv run python src/main.py detect     # detect current state without acting
+uv run python src/main.py compose    # rebuild composite for the latest event_N
 ```
 
 Output lands in `./output/event_N/` as per-run screenshots plus a final `composite_revealed.png`.

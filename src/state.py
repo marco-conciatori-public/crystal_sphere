@@ -34,7 +34,7 @@ from main import (
 )
 
 STATES = ("initial", "choice", "map", "paused")
-REFERENCES_DIR = Path("references")
+REFERENCES_DIR = Path(__file__).resolve().parent.parent / "assets" / "references"
 CAPTURE_COUNTDOWN = 5.0
 MATCH_THRESHOLD = 40.0  # max mean per-channel pixel distance for a valid match
 

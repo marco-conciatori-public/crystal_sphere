@@ -44,7 +44,7 @@ pyautogui.PAUSE = 0.05
 # CALIBRATION — pixel coordinates load from calibration.toml.
 # Edit calibration.toml (not this file) to tune values for your screen.
 
-CALIBRATION_FILE = Path(__file__).parent / "calibration.toml"
+CALIBRATION_FILE = Path(__file__).resolve().parent.parent / "calibration.toml"
 
 
 # calibrate mode is the recovery path for a missing/incomplete file, so it

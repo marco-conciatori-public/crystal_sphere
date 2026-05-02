@@ -4,7 +4,7 @@ setlocal
 set "PROJECT_DIR=C:\Users\Marco\GIT\crystal_sphere"
 set "LAUNCHER_DIR=%~dp0"
 
-if not exist "%PROJECT_DIR%\main.py" (
+if not exist "%PROJECT_DIR%\src\main.py" (
     echo Project not found at %PROJECT_DIR%
     echo Edit this launcher and update PROJECT_DIR.
     pause
@@ -12,7 +12,7 @@ if not exist "%PROJECT_DIR%\main.py" (
 )
 
 pushd "%PROJECT_DIR%"
-call uv run python main.py
+call uv run python src\main.py
 set "RC=%ERRORLEVEL%"
 popd
 
