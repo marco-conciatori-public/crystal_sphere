@@ -1,7 +1,7 @@
 # -*- mode: python ; coding: utf-8 -*-
 # PyInstaller spec for Crystal Sphere Auto-Scout.
 # Build:  uv run pyinstaller crystal_sphere.spec --noconfirm
-# Output: dist/Crystal Sphere.exe (single-file build)
+# Output: dist/CrystalSphere.exe (single-file build)
 
 a = Analysis(
     ['src/main.py'],
@@ -25,7 +25,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='Crystal Sphere',
+    name='CrystalSphere',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

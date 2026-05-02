@@ -65,4 +65,4 @@ uv sync --group dev
 uv run pyinstaller crystal_sphere.spec --noconfirm
 ```
 
-The result is `dist/Crystal Sphere.exe`. It looks for `calibration.toml` next to itself and writes `output/` next to itself. Reference images for state detection are bundled into the .exe but can be overridden by recapturing them — recaptures land in `<exe folder>/assets/references/` and take precedence over the bundled defaults. Calibrate first with `"Crystal Sphere.exe" calibrate`, then recapture references with `"Crystal Sphere.exe" capture <state>` for each of `initial`, `choice`, `map`, `paused`.
+The result is `dist/CrystalSphere.exe`. It looks for `calibration.toml` next to itself and writes `output/` next to itself. Reference images for state detection are bundled into the .exe but can be overridden by recapturing them — recaptures land in `<exe folder>/assets/references/` and take precedence over the bundled defaults. Calibrate first with `CrystalSphere.exe calibrate`, then recapture references with `CrystalSphere.exe capture <state>` for each of `initial`, `choice`, `map`, `paused`.

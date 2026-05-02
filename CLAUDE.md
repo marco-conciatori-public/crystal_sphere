@@ -29,7 +29,7 @@ PyInstaller build (single-file Windows .exe):
 ```bash
 uv sync --group dev                              # adds pyinstaller to .venv
 uv run pyinstaller crystal_sphere.spec --noconfirm
-# Output: dist/Crystal Sphere.exe (~19 MB)
+# Output: dist/CrystalSphere.exe (~19 MB)
 ```
 
 The spec bundles `assets/references/` and uses `assets/launcher_icon.ico` as the .exe icon. `dist/` and `build/` are gitignored.
