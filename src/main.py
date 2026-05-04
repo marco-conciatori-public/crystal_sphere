@@ -315,18 +315,15 @@ def run_full_scout() -> None:
 
     for i, centers in enumerate(ALL_RUNS):
         do_run(i, centers, session_dir)
-        # After the last run we land on the main menu and STOP.
-        # User reloads manually and plays the event with full info.
-        if i < len(ALL_RUNS) - 1:
-            continue_run()
-            # Re-entering the run drops you back at the event prompt because we never committed (no exit click).
+        continue_run()
+        # Re-entering the run drops you back at the event prompt because we never committed (no exit click).
 
     print("\nAll scouting runs complete.")
     print(f"Screenshots: {session_dir.resolve()}")
     from compose import compose_event
     compose_event(session_dir)
-    print("You are now on the main menu. Click Continue, then play the event")
-    print("for real using your screenshots as a map.")
+    print("You are now back at the Crystal Sphere choice prompt.")
+    print("Pick the option you want and play the event using your screenshots as a map.")
 
 
 # CALIBRATION HELPER
