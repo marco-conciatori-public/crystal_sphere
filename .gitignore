@@ -3,6 +3,5 @@
 .claude/
 output/
 build/
-dist/
 
 uv.lock
