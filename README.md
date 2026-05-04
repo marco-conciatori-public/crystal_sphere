@@ -5,8 +5,8 @@ A PyAutoGUI script that automates the **Crystal Sphere** event in *Slay the Spir
 It reveals every tile of the circle-shaped 11×11 grid by repeatedly picking the 6-flip
 Debt" option, flipping 5 tiles, taking a screenshot, then **Save & Quit → Continue** to
 reset the run without committing. Three cycles (5 + 5 + 4 = 14 flips) cover the whole map;
-the screenshots are stitched into one fully-revealed composite. The script stops at the
-main menu so you can play the run manually.
+the screenshots are stitched into one fully-revealed composite. The script reloads one
+more time and stops at the 3-vs-6-flip choice prompt so you can play the run manually.
 
 ## Requirements
 

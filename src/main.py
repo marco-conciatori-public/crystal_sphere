@@ -6,7 +6,8 @@ Automates the "save & quit" scouting loop for the Crystal Sphere event:
   2. Reveals tiles per run using a precomputed coverage pattern
   3. Screenshots the grid
   4. Save & Quit -> Continue, repeat until the whole circle is mapped (3 runs)
-  5. Stops BEFORE the final play-through so you can do that yourself
+  5. Reloads one more time and stops on the 3-vs-6-flip choice prompt,
+     ready for you to play the event for real
 
 The grid is circle-shaped (not a full square): of the 11x11 cells only the
 inner 97 are real tiles. Corners are not part of the map. Across 3 rounds
@@ -254,17 +255,16 @@ def run_full_scout() -> None:
 
     for i, centers in enumerate(ALL_RUNS):
         do_run(i, centers, session_dir)
-        # After the last run we land on the main menu and STOP.
-        # User reloads manually and plays the event with full info.
-        if i < len(ALL_RUNS) - 1:
-            continue_run()
-            # Re-entering the run drops you back at the event prompt because we never committed (no exit click).
+        # Re-entering after Save & Quit drops us back at the choice prompt
+        # because we never committed (no 6th flip). After the last run we
+        # leave the user there, ready to play the event for real.
+        continue_run()
 
     print("\nAll scouting runs complete.")
     print(f"Screenshots: {session_dir.resolve()}")
     from compose import compose_event
     compose_event(session_dir)
-    print("You are now on the main menu. Click Continue, then play the event")
+    print("You are now at the 3-vs-6-flip choice prompt. Play the event")
     print("for real using your screenshots as a map.")
 
 

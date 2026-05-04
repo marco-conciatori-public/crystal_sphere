@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-PyAutoGUI script that automates the **Crystal Sphere** event in *Slay the Spire 2*. It reveals every tile of the (circle-shaped) 11×11 grid by repeatedly choosing the 6-flip "Debt" option, flipping 5 tiles, screenshotting, then **Save & Quit → Continue** to reset the run without committing — across 3 such cycles (5 + 5 + 4 = 14 flips). The script stops at the main menu before the final committed play-through, after composing the 3 screenshots into one fully-revealed map.
+PyAutoGUI script that automates the **Crystal Sphere** event in *Slay the Spire 2*. It reveals every tile of the (circle-shaped) 11×11 grid by repeatedly choosing the 6-flip "Debt" option, flipping 5 tiles, screenshotting, then **Save & Quit → Continue** to reset the run without committing — across 3 such cycles (5 + 5 + 4 = 14 flips). After the last Save & Quit, the script reloads one final time and stops at the 3-vs-6-flip choice prompt (before the final committed play-through), after composing the 3 screenshots into one fully-revealed map.
 
 ## Commands
 
@@ -34,7 +34,7 @@ There are no tests, lint config, or build step.
 
 - **Critical safety invariant: never spend the 6th flip.** The script picks the 6-flip option each round but `MAX_FLIPS_PER_RUN = 5` enforces a hard cap in `do_run()`. The 6th flip commits event state, breaking the save-scum loop. Any change that adds clicks per run must preserve this cap.
 
-- **Loop control flow** (`run_full_scout`): for each run, choose 6-flip option → flip 5 tiles → screenshot → Save & Quit → between runs, `Continue` from main menu re-enters the un-committed event. After the final run the script intentionally stops on the main menu and lets the user play manually.
+- **Loop control flow** (`run_full_scout`): for each run, choose 6-flip option → flip 5 tiles → screenshot → Save & Quit → `Continue` from main menu re-enters the un-committed event back at the choice prompt. The post-run `Continue` runs after every iteration including the last, so the script ends sitting on the 3-vs-6-flip choice prompt, ready for the user to play manually.
 
 - **Failsafe.** `pyautogui.FAILSAFE = True`: moving the mouse to any screen corner aborts immediately. Preserve this when refactoring.
 
